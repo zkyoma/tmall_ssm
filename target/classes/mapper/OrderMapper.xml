@@ -1,0 +1,106 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.OrderMapper">
+
+    <resultMap id="orderMap" type="order">
+        <id property="id" column="or_id"/>
+        <result property="orderCode" column="orderCode"/>
+        <result property="address" column="address"/>
+        <result property="post" column="post"/>
+        <result property="receiver" column="receiver"/>
+        <result property="mobile" column="mobile"/>
+        <result property="userMessage" column="userMessage"/>
+        <result property="createDate" column="createDate"/>
+        <result property="payDate" column="payDate"/>
+        <result property="deliveryDate" column="deliveryDate"/>
+        <result property="confirmDate" column="confirmDate"/>
+        <result property="uid" column="or_uid"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <resultMap id="orderWithOisPdtMap" type="order">
+        <id property="id" column="or_id"/>
+        <result property="orderCode" column="orderCode"/>
+        <result property="address" column="address"/>
+        <result property="post" column="post"/>
+        <result property="receiver" column="receiver"/>
+        <result property="mobile" column="mobile"/>
+        <result property="userMessage" column="userMessage"/>
+        <result property="createDate" column="createDate"/>
+        <result property="payDate" column="payDate"/>
+        <result property="deliveryDate" column="deliveryDate"/>
+        <result property="confirmDate" column="confirmDate"/>
+        <result property="uid" column="or_uid"/>
+        <result property="status" column="status"/>
+        <!--orderItems-->
+        <collection property="orderItems" ofType="orderItem" column="or_id"
+                    select="com.how2java.tmall.mapper.OrderItemMapper.getOisWithProduct"/>
+    </resultMap>
+
+    <sql id="base_columns">
+        o.id or_id, o.orderCode, o.address, o.post, o.receiver, o.mobile, o.userMessage, o.createDate, o.payDate,
+        o.deliveryDate, o.confirmDate, o.uid or_uid, o.status
+    </sql>
+
+    <!--<sql id="columnsWithOisPdt">-->
+        <!--<include refid="base_columns"/>, oi.id oi_id, oi.pid oi_pid, oi.oid oi_oid, oi.uid oi_uid, oi.number,-->
+        <!--p.id pdt_id, p.name pdt_name, p.subTitle, p.originalPrice, p.promotePrice, p.stock, p.cid pdt_cid, p.createDate,-->
+        <!--pi.id pi_id, pi.pid pi_pid, pi.type-->
+    <!--</sql>-->
+
+    <!--查询所有-->
+    <select id="list" resultMap="orderMap">
+        select <include refid="base_columns"/> from order_ o
+    </select>
+
+    <!---查询所有order，填充orderItems集合，为每个orderItem填充product-->
+    <select id="listWithOisPdt" resultMap="orderWithOisPdtMap">
+        select <include refid="base_columns"/> from order_ o
+    </select>
+
+    <!--更新时间和订单状态-->
+    <update id="updateDateAndStatus" parameterType="order">
+        update order_
+        <set>
+            <if test="payDate != null">
+                payDate = #{payDate},
+            </if>
+            <if test="deliveryDate != null">
+                deliveryDate = #{deliveryDate},
+            </if>
+            <if test="confirmDate != null">
+                confirmDate = #{confirmDate},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--保存订单-->
+    <insert id="add" parameterType="order" useGeneratedKeys="true" keyProperty="id">
+        insert into order_ (orderCode, address, post, receiver, mobile, userMessage,
+                           createDate, payDate, deliveryDate, confirmDate, uid, status)
+        values (#{orderCode}, #{address}, #{post}, #{receiver}, #{mobile}, #{userMessage},
+               #{createDate}, #{payDate}, #{deliveryDate}, #{confirmDate}, #{uid}, #{status})
+    </insert>
+
+    <!--根据uid查询订单集合，除delete外，联合查询订单项-->
+    <select id="getByUidWithOutDelete" parameterType="int" resultMap="orderWithOisPdtMap">
+        select <include refid="base_columns"/> from order_ o where o.uid = #{uid} and o.status != 'delete'
+    </select>
+
+    <!--根据id查询-->
+    <select id="getById" parameterType="int" resultMap="orderMap">
+        select <include refid="base_columns"/> from order_ o where o.id = #{id}
+    </select>
+
+    <!--根据id查询，联合查询orderItems集合-->
+    <select id="getByIdWithOis" parameterType="int" resultMap="orderWithOisPdtMap">
+        select <include refid="base_columns"/> from order_ o where o.id = #{id}
+    </select>
+
+</mapper>

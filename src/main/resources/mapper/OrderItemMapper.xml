@@ -1,0 +1,90 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.OrderItemMapper">
+
+    <resultMap id="oiWithPdtMap" type="orderItem">
+        <id property="id" column="oi_id"/>
+        <result property="pid" column="oi_pid"/>
+        <result property="oid" column="oi_oid"/>
+        <result property="uid" column="oi_uid"/>
+        <result property="number" column="number"/>
+        <!--product-->
+        <association property="product" javaType="product" resultMap="com.how2java.tmall.mapper.ProductMapper.productWithImagsMap"/>
+    </resultMap>
+
+    <sql id="columnsWithPdt">
+        oi.id oi_id, oi.pid oi_pid, oi.oid oi_oid, oi.uid oi_uid, oi.number,
+        p.id pdt_id, p.name pdt_name, p.subTitle, p.originalPrice, p.promotePrice, p.stock, p.cid pdt_cid, p.createDate
+    </sql>
+
+    <!--根据id查询orderitem，并联合查询Product,productimage-->
+    <select id="getOisWithProduct" parameterType="int" resultMap="oiWithPdtMap">
+        select <include refid="columnsWithPdt"/> from orderitem oi
+        left outer join product p on oi.pid  = p.id
+        where oi.oid = #{oid}
+    </select>
+
+    <!--根据pid查询-->
+    <select id="getByPid" parameterType="int" resultType="orderItem">
+        select id, pid, oid, uid, number from orderitem where pid = #{pid}
+    </select>
+
+    <!--根据pid查询对于product的销量-->
+    <select id="getSaleCountByPid" parameterType="int" resultType="Integer">
+        select ifnull(sum(number), 0) from orderitem where pid = #{pid}
+    </select>
+
+    <!--查询uid对应的orderItem集合，且oid为-1，及仍在购物车-->
+    <select id="getByUidInCart" parameterType="int" resultType="orderItem">
+        select id, pid, oid, uid, number from orderitem where uid = #{uid} and oid = -1
+    </select>
+
+    <!--保存-->
+    <insert id="add" parameterType="orderItem">
+        insert orderitem (pid, oid, uid, number) values (#{pid}, #{oid}, #{uid}, #{number})
+    </insert>
+
+    <!--根据id，更新number-->
+    <update id="updateNumberById" parameterType="orderItem">
+        update orderitem set number = #{number} where id = #{id}
+    </update>
+
+    <!--根据uid查询orderItems集合，联合查询products和productSingleImages-->
+    <select id="getByUidInCartWithPdt" parameterType="int" resultMap="oiWithPdtMap">
+        select <include refid="columnsWithPdt"/> from orderitem oi
+        left outer join product p on oi.pid = p.id where oi.uid = #{uid} and oi.oid = -1
+    </select>
+
+    <!--根据id数组，查询-->
+    <select id="getByIdsArrWithPds" parameterType="Object[]" resultMap="oiWithPdtMap">
+        select  <include refid="columnsWithPdt"/> from orderitem oi
+        left outer join product p on oi.pid = p.id
+        <where>
+            <if test="array != null and array.length > 0">
+                <foreach collection="array" separator="," open=" and oi.id in(" close=")" item="id">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!--根据uid查询oid为-1，即还在购物车的orderItem的数量和-->
+    <select id="getSumNumberByUid" parameterType="int" resultType="Integer">
+        select ifnull(sum(number), 0) from orderitem where uid = #{uid} and oid = -1
+    </select>
+
+    <!--根据id删除-->
+    <delete id="deleteById" parameterType="int">
+        delete from orderitem where id = #{id}
+    </delete>
+
+    <!--根据id的list集合，批量修改其对应的oid-->
+    <update id="updateOidByIdList" parameterType="map">
+        update orderitem set oid = #{oid} where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

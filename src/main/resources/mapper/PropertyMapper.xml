@@ -1,0 +1,55 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.PropertyMapper">
+
+    <resultMap id="propertyMap" type="property">
+        <id property="id" column="pt_id"/>
+        <result property="cid" column="pt_cid"/>
+        <result property="name" column="pt_name"/>
+    </resultMap>
+
+    <resultMap id="ptyWithCgyMap" type="property">
+        <id property="id" column="pt_id"/>
+        <result property="cid" column="pt_cid"/>
+        <result property="name" column="pt_name"/>
+        <association property="category" javaType="category" resultMap="com.how2java.tmall.mapper.CategoryMapper.categoryMap"/>
+    </resultMap>
+
+    <!--查询所有-->
+    <select id="list" resultMap="propertyMap">
+        select id pt_id, cid pt_cid, name pt_name from property
+    </select>
+
+    <!--保存-->
+    <insert id="add" parameterType="property">
+        insert into property (cid, name) values (#{cid}, #{name})
+    </insert>
+
+    <!--根据id删除-->
+    <delete id="deleteById" parameterType="int">
+        delete from property where id = #{id}
+    </delete>
+
+    <!--根据id查询，同时带有category-->
+    <select id="getByIdWithCgy" parameterType="int" resultMap="ptyWithCgyMap">
+        select p.id pt_id, p.cid pt_cid, p.name pt_name, c.id cgy_id, c.name cgy_name from property p inner JOIN category c on c.id = p.cid where p.id = #{id}
+    </select>
+
+    <!--根据id查询-->
+    <select id="getById" parameterType="int" resultMap="propertyMap">
+        select id pt_id, cid pt_cid, name pt_name from property where id = #{id}
+    </select>
+
+    <!--更新-->
+    <update id="update" parameterType="property">
+        update property set name = #{name} where id = #{id};
+    </update>
+
+    <!--根据cid查询-->
+    <select id="getByCid" parameterType="int" resultMap="propertyMap">
+        select id pt_id, cid pt_cid, name pt_name from property where cid = #{cid}
+    </select>
+
+</mapper>

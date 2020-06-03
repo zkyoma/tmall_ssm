@@ -1,0 +1,177 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.ProductMapper">
+
+    <resultMap id="productMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+    </resultMap>
+
+    <resultMap id="productWithImagsMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+        <collection property="productSingleImages" column="pdt_id" ofType="productImage"
+                    select="com.how2java.tmall.mapper.ProductImageMapper.getByPidAndType_single"/>
+    </resultMap>
+
+    <resultMap id="productWithCategoryMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+        <association property="category" javaType="category" resultMap="com.how2java.tmall.mapper.CategoryMapper.categoryMap"/>
+    </resultMap>
+
+    <resultMap id="productWithAllImagsAndCgyMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+        <association property="category" javaType="category" resultMap="com.how2java.tmall.mapper.CategoryMapper.categoryMap"/>
+        <collection property="productImages" ofType="productImage" resultMap="com.how2java.tmall.mapper.ProductImageMapper.productImageMap"/>
+    </resultMap>
+
+    <resultMap id="productWithCgyAndPvsPtMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+        <association property="category" javaType="category" resultMap="com.how2java.tmall.mapper.CategoryMapper.categoryMap"/>
+        <collection property="propertyValues" ofType="propertyValue" resultMap="com.how2java.tmall.mapper.PropertyValueMapper.pVWithPtMap"/>
+    </resultMap>
+
+    <resultMap id="pdtWithPisAndPvsPtMap" type="product">
+        <id property="id" column="pdt_id"/>
+        <result property="name" column="pdt_name"/>
+        <result property="subTitle" column="subTitle"/>
+        <result property="originalPrice" column="originalPrice"/>
+        <result property="promotePrice" column="promotePrice"/>
+        <result property="stock" column="stock"/>
+        <result property="cid" column="pdt_cid"/>
+        <result property="createDate" column="createDate"/>
+        <association property="category" javaType="category" resultMap="com.how2java.tmall.mapper.CategoryMapper.categoryMap"/>
+        <collection property="productImages" ofType="productImage" resultMap="com.how2java.tmall.mapper.ProductImageMapper.productImageMap"/>
+        <collection property="propertyValues" ofType="propertyValue" resultMap="com.how2java.tmall.mapper.PropertyValueMapper.pVWithPtMap"/>
+    </resultMap>
+
+    <!--product的字段-->
+    <sql id="base_columns">
+        p.id pdt_id, p.name pdt_name, p.subTitle, p.originalPrice, p.promotePrice, p.stock, p.cid, p.createDate
+    </sql>
+
+    <sql id="base_columnsWithImags">
+        <include refid="base_columns"/>, pi.id pi_id, pi.pid pi_pid, pi.type
+    </sql>
+
+    <sql id="base_columnsWithImagsAndCgy">
+        <include refid="base_columnsWithImags"/>, c.id cgy_id, c.name cgy_name
+    </sql>
+
+    <sql id="base_columnsWithCategory">
+        <include refid="base_columns"/>, c.id cgy_id, c.name cgy_name
+    </sql>
+
+    <sql id="base_columnsWithCgyAndPvsPt">
+        <include refid="base_columnsWithCategory"/>,
+        pv.id pv_id, pv.pid pv_pid, pv.ptid pv_ptid, pv.value, pt.id pt_id, pt.cid pt_cid, pt.name pt_name
+    </sql>
+
+    <sql id="base_columnsWithPisAndPvsPt">
+        <include refid="base_columnsWithImagsAndCgy"/>,  pv.id pv_id, pv.pid pv_pid, pv.ptid pv_ptid, pv.value,
+        pt.id pt_id, pt.cid pt_cid, pt.name pt_name
+    </sql>
+
+    <!--查询所有-->
+    <select id="list" parameterType="int" resultMap="productMap">
+        select <include refid="base_columns"/> from product p where cid = #{cid}
+    </select>
+
+    <!--查询所有，带有productSingleImages-->
+    <select id="listWithSingles" parameterType="int" resultMap="productWithImagsMap">
+        select <include refid="base_columns"/> from product p where p.cid = #{cid}
+    </select>
+
+    <!--查询所有，带有全部的productImages和category-->
+    <select id="getByIdWithAllImagesAndCgy" parameterType="int" resultMap="productWithAllImagsAndCgyMap">
+        select <include refid="base_columnsWithImagsAndCgy"/> from product p
+        INNER JOIN productimage pi on p.id = pi.pid
+        inner join category c on c.id = p.cid where p.id = #{id}
+    </select>
+
+    <!--保存-->
+    <insert id="add" parameterType="product" useGeneratedKeys="true" keyProperty="id">
+        insert into product(name, subTitle, originalPrice, promotePrice, stock, cid, createDate)
+         values (#{name}, #{subTitle}, #{originalPrice}, #{promotePrice}, #{stock}, #{cid}, #{createDate})
+    </insert>
+
+    <!--根据id查询，带有category-->
+    <select id="getByIdWithCategory" parameterType="int" resultMap="productWithCategoryMap">
+        select <include refid="base_columnsWithCategory"/> from product p inner join category c on p.cid = c.id where p.id = #{id}
+    </select>
+
+    <!--根据id查询-->
+    <select id="getById" parameterType="int" resultMap="productWithImagsMap">
+        select <include refid="base_columns"/> from product p where id = #{id}
+    </select>
+
+    <!--更新-->
+    <update id="update" parameterType="product">
+        update product set name = #{name}, subTitle = #{subTitle}, originalPrice = #{originalPrice},
+         promotePrice = #{promotePrice}, stock = #{stock} where id = #{id}
+    </update>
+
+    <!--根据id删除-->
+    <delete id="deleteById" parameterType="int">
+        delete from product where id = #{id}
+    </delete>
+
+    <!--根据id，查询，填充propertyValues，且为每个propertyValue填充property-->
+    <select id="getByIdWithCgyAndPvsPt" parameterType="int" resultMap="productWithCgyAndPvsPtMap">
+        select <include refid="base_columnsWithCgyAndPvsPt"/> from product p
+        INNER JOIN category c on c.id = p.cid
+        INNER JOIN propertyvalue pv on p.id = pv.pid
+        INNER JOIN property pt on pt.id = pv.ptid
+        where p.id = #{id}
+    </select>
+
+    <!--根据id查询，关联查询propertyValues，property, reviews, user-->
+    <select id="getByIdWithPisAndPvsPt" parameterType="int" resultMap="pdtWithPisAndPvsPtMap">
+        select <include refid="base_columnsWithPisAndPvsPt"/> from product p
+        left outer join category c on c.id = p.cid
+        left outer join productimage pi on p.id = pi.pid
+        left outer join propertyvalue pv on p.id = pv.pid
+        left outer join property pt on pv.ptid = pt.id
+        where p.id = #{id}
+    </select>
+
+    <!--根据关键字模糊查询-->
+    <select id="getByKeyword" parameterType="String" resultMap="productWithImagsMap">
+        select <include refid="base_columns"/> from product p where p.name like concat('%', #{keyword}, '%')
+    </select>
+</mapper>

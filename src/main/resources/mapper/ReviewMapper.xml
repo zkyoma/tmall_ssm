@@ -1,0 +1,32 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.ReviewMapper">
+
+    <resultMap id="reviewWithUserMap" type="review">
+        <id property="id" column="rw_id"/>
+        <result property="content" column="content"/>
+        <result property="uid" column="rw_uid"/>
+        <result property="pid" column="rw_pid"/>
+        <result property="createDate" column="createDate"/>
+        <association property="user" javaType="user">
+            <id property="id" column="u_id"/>
+            <result property="name" column="u_name"/>
+            <result property="password" column="password"/>
+        </association>
+    </resultMap>
+
+    <select id="getByPidWithUser" parameterType="int" resultMap="reviewWithUserMap">
+        select r.id rw_id, r.content, r.uid rw_uid, r.pid rw_pid, r.createDate, u.id u_id, u.name u_name, u.password
+        from review r left outer join user u on r.uid = u.id where r.pid = #{pid}
+    </select>
+
+    <select id="getCountByPid" parameterType="int" resultType="Integer">
+        select ifnull(count(id), 0) from review where pid = #{pid}
+    </select>
+
+    <insert id="add" parameterType="review">
+        insert into review (content, uid, pid, createDate) values (#{content}, #{uid}, #{pid}, #{createDate})
+    </insert>
+</mapper>

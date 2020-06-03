@@ -1,0 +1,59 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.how2java.tmall.mapper.CategoryMapper">
+
+    <resultMap id="categoryMap" type="category">
+        <id property="id" column="cgy_id"/>
+        <result property="name" column="cgy_name"/>
+    </resultMap>
+
+    <resultMap id="categoryWithPdtsMap" type="category">
+        <id property="id" column="cgy_id"/>
+        <result property="name" column="cgy_name"/>
+        <collection property="products" ofType="product" resultMap="com.how2java.tmall.mapper.ProductMapper.productWithImagsMap"/>
+    </resultMap>
+
+    <!--分页查询-->
+    <select id="list" resultMap="categoryMap">
+        select id cgy_id, name cgy_name from category order by id asc
+    </select>
+
+    <!--
+        保存分类，keyProperty="id" useGeneratedKeys="true"
+        以确保Category对象通过mybatis增加到数据库之后得到的id增长值会被设置在Category对象
+    -->
+    <insert id="add" keyProperty="id" useGeneratedKeys="true" parameterType="category">
+        insert into category (name) values (#{name})
+    </insert>
+
+    <!--根据id删除-->
+    <delete id="deleteById" parameterType="int">
+        delete from category where id = #{id}
+    </delete>
+
+    <!--根据id查询分类-->
+    <select id="getById" parameterType="int" resultMap="categoryMap">
+        select id cgy_id, name cgy_name from category where id = #{id}
+    </select>
+
+    <!--更新-->
+    <update id="update" parameterType="category">
+        update category set name = #{name} where id = #{id}
+    </update>
+
+    <!--查询所有分类，联合查询products-->
+    <select id="listWithPdts" resultMap="categoryWithPdtsMap">
+        select c.id cgy_id, c.name cgy_name, <include refid="com.how2java.tmall.mapper.ProductMapper.base_columns"/>
+        from category c left outer join product p on c.id = p.cid
+    </select>
+
+    <!--根据id查询分类，联合查询products信息-->
+    <select id="getByIdWithPdts" parameterType="int" resultMap="categoryWithPdtsMap">
+        select c.id cgy_id, c.name cgy_name, <include refid="com.how2java.tmall.mapper.ProductMapper.base_columns"/>
+        from category c
+        left outer join product p on c.id = p.cid
+        where c.id = #{id}
+    </select>
+</mapper>
