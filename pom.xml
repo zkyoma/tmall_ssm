@@ -18,7 +18,7 @@
     <spring.version>5.2.2.RELEASE</spring.version>
     <mybatis.version>3.4.5</mybatis.version>
     <mybatis-spring.version>2.0.3</mybatis-spring.version>
-    <mysql.version>8.0.19</mysql.version>
+    <mysql.version>8.0.28</mysql.version>
     <druid.verion>1.0.9</druid.verion>
     <jstl.version>1.2</jstl.version>
     <servlet.version>4.0.1</servlet.version>
